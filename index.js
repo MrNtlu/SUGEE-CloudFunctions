@@ -33,3 +33,65 @@ exports.sendCommentNotification = functions.firestore.document('feed_comments/{c
         console.log("Error sending message:",error)
     });
 });
+
+exports.sendAnswerNotification = functions.firestore.document('answers/{answerID}').onCreate((data, context) => {
+    const answerData = data.data();
+    const questionID = answerData["questionID"]
+
+    var topic = `question_${questionID}`
+    const payload = {
+        data: {
+            "data": "question",
+            "dataID": questionID
+        },
+        notification: {
+            title: `${answerData["author"]["name"]} answered`,
+            body: `${answerData["body"]}`,
+        },
+        android: {
+            notification: {
+                sound: "default",
+                notification_count: 1,
+            }
+        },
+        topic: topic
+    };
+
+    admin.messaging().send(payload).then((response) => {
+        return console.log("Successfully sent message:",response)
+    })
+    .catch((error) => {
+        console.log("Error sending message:",error)
+    });
+});
+
+// exports.sendEventNotification = functions.firestore.document('feed_comments/{commentID}').onCreate((data, context) => {
+//     const eventData = data.data();
+//     const eventID = eventData["id"]
+
+//     var topic = `question_${questionID}`
+//     const payload = {
+//         data: {
+//             "data": "question",
+//             "dataID": questionID
+//         },
+//         notification: {
+//             title: `${answerData["author"]["name"]} answered`,
+//             body: `${answerData["message"]}`,
+//         },
+//         android: {
+//             notification: {
+//                 sound: "default",
+//                 notification_count: 1,
+//             }
+//         },
+//         topic: topic
+//     };
+
+//     admin.messaging().send(payload).then((response) => {
+//         return console.log("Successfully sent message:",response)
+//     })
+//     .catch((error) => {
+//         console.log("Error sending message:",error)
+//     });
+// });
