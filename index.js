@@ -59,10 +59,26 @@ exports.sendAnswerNotification = functions.firestore.document('answers/{answerID
 
 exports.updateMemberInnerModel = functions.firestore.document('members/{memberID}').onUpdate((change, context) => {
     const newMemberModel = change.after.data();
-    const previousMemberModel = change.before.data();
-
-    updateMemberInnerModels(newMemberModel);
+    const oldMemberModel = change.before.data();
+    
+    if(shouldMemberInnerUpdate(newMemberModel, oldMemberModel)){
+        updateMemberInnerModels(newMemberModel);
+    }else{
+        console.log("MemberModel updated successfully and there is no need to update inner models.")
+    }
 });
+
+function shouldMemberInnerUpdate(newData, oldData){
+    if(newData['image'] !== oldData['image'] || 
+    newData['name'] !== oldData['name'] || 
+    newData['roles'][0] !== oldData['roles'][0] ||
+    newData['fcmToken'] !== oldData['fcmToken']){
+        return true
+    }else{
+        return false
+    }
+
+}
 
 function updateMemberInnerModels(data){
     updateReference('questions','author',data)
@@ -84,17 +100,13 @@ function updateReference(collectionName, path, data){
                 doc.data()[path]["roles"],
                 doc.data()[path]["fcmToken"]
             )
-
-            /*
-            From this point update the memberinnermodel
-            db.collection(collectionName).document(doc.data()["id"]).update(path, memberInnerModel)
-            */
+           db.collection(collectionName).doc(doc.data()["id"]).update(path, memberInnerModel)
            return console.log(memberInnerModel.toString());
         });
 
         return console.log("Done querying.");
     }).catch(function(error) {
-        console.log("Error getting documents: ", error);
+        console.log("Error getting documents for "+collectionName+' '+path+' '+data['id']+' and error is ==> ', error);
         return error;
     });
 }
