@@ -1,7 +1,7 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 
-try { admin.initializeApp() } catch (e) {console.log(e);}
+try { admin.initializeApp() } catch (e) {undefined}
 
 const db = admin.firestore();
 
@@ -24,7 +24,7 @@ exports.sendCommentNotification = functions.firestore.document('feed_comments/{c
 
         return console.log("Done querying.");
     }).catch(err => {
-        console.log('Error getting document', err);
+        console.error('Error getting document', err);
         return err;
     });
 });
@@ -33,25 +33,24 @@ exports.sendAnswerNotification = functions.firestore.document('answers/{answerID
     const answerData = data.data();
     const questionID = answerData["questionID"]
 
-    db.collection('questions').doc(questionID).get().then(doc => {
-        if (doc.exists) {
-            sendTokenPayload(
-                "question",
-                questionID,
-                `${answerData["author"]["name"]} answered`,
-                `${answerData["body"]}`,
-                doc.data()["author"]["fcmToken"]
-            )
+    db.collection('memberLookups').where("questions","array-contains",questionID).get().then(function(querySnapshot) {
+        querySnapshot.forEach(function(doc) {
+            if (doc.data()['notificationEnabled']) {
+                sendTokenPayload(
+                    "question",
+                    questionID,
+                    `${answerData["author"]["name"]} answered`,
+                    `${answerData["body"]}`,
+                    doc.data()["author"]["fcmToken"]
+                )
+            }
+        });
 
-            return console.log("Successfully queried.");
-        }else{
-            return console.log("Doc doesn't exist.")
-        }
-          
-      }).catch(err => {
-          console.log('Error getting document', err);
-          return err;
-      });
+        return console.log("Done querying.");
+    }).catch(err => {
+        console.error('Error getting document', err);
+        return err;
+    });
 });
 
 function sendTokenPayload(data, dataID, title, body, token){
@@ -77,6 +76,6 @@ function sendTokenPayload(data, dataID, title, body, token){
         return console.log("Successfully sent message:",response)
     })
     .catch((error) => {
-        return console.log("Error sending message:",error)
+        return console.error("Error sending message:",error)
     });
 }

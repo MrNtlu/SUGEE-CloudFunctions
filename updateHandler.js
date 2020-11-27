@@ -1,7 +1,7 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 
-try { admin.initializeApp() } catch (e) {console.log(e);}
+try { admin.initializeApp() } catch (e) {undefined}
 
 const db = admin.firestore();
 
@@ -17,8 +17,7 @@ exports.updateMemberInnerModel = functions.firestore.document('members/{memberID
 function shouldMemberInnerUpdate(newData, oldData){
     if(newData['image'] !== oldData['image'] || 
     newData['name'] !== oldData['name'] || 
-    newData['roles'][0] !== oldData['roles'][0] ||
-    newData['fcmToken'] !== oldData['fcmToken']){
+    newData['roles'][0] !== oldData['roles'][0]){
         return true
     }else{
         return false
@@ -48,17 +47,11 @@ function updateReference(collectionName, path, data){
                 console.error("Error updating document: ", error);
             });
 
-           return console.log('Collection Name: '+collectionName+' Data '+JSON.stringify(data)+' Path '+path+' MemberInnerModel '+JSON.stringify({
-            [`${path}.id`]: data["id"],
-            [`${path}.name`]: data["name"],
-            [`${path}.image`]: data["image"],
-            [`${path}.roles`]: data["roles"]
-         }));
+           return null;
         });
 
         return console.log("Done querying.");
     }).catch(function(error) {
-        console.log("Error getting documents for "+collectionName+' '+path+' '+data['id']+' and error is ==> ', error);
-        return error;
+        return console.error("Error getting documents for "+collectionName+' '+path+' '+data['id']+' and error is ==> ', error);
     });
 }
