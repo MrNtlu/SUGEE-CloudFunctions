@@ -15,7 +15,7 @@ exports.sendCommentNotification = functions.firestore.document('feed_comments/{c
                 sendTokenPayload(
                     "feed",
                     feedID,
-                    `${commentData["author"]["name"]} commented`,
+                    `${commentData["author"]["name"]} commented on your feed.`,
                     `${commentData["message"]}`,
                     doc.data()["fcmToken"]
                 )
@@ -39,7 +39,7 @@ exports.sendAnswerNotification = functions.firestore.document('answers/{answerID
                 sendTokenPayload(
                     "question",
                     questionID,
-                    `${answerData["author"]["name"]} answered`,
+                    `${answerData["author"]["name"]} answered your question.`,
                     `${answerData["body"]}`,
                     doc.data()["author"]["fcmToken"]
                 )

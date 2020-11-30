@@ -7,29 +7,7 @@ try { admin.initializeApp() } catch (e) {undefined}
 const db = admin.firestore();
 
 exports.onQuestionDeleteAnswers = functions.firestore.document('questions/{questionID}').onDelete((snap, context) => {
-    //const deletedValue = snap.data();
-
     handleQueryDelete('answers','questionID',context.params.questionID, 'answers')
-
-    // db.collection('answers').where('questionID', '==',context.params.questionID)
-    // .get()
-    // .then(function(querySnapshot) {
-    //     querySnapshot.forEach(function(doc) {
-    //        db.collection('answers').doc(doc.data()["id"]).delete()
-    //        .then(function() {
-    //            console.log("Document successfully deleted!");
-    //         }).catch(function(error) {
-    //             console.error("Error removing document: ", error);
-    //         });
-
-    //        return null;
-    //     });
-
-    //     return console.log("Done querying.");
-    // }).catch(function(error) {
-    //     console.log("Error getting documents for ",error);
-    //     return error;
-    // });
 });
 
 exports.onFeedDeleteComments = functions.firestore.document('feeds/{feedID}').onDelete((snap, context) => {
