@@ -11,6 +11,8 @@ exports.sendCommentNotification = functions.firestore.document('feed_comments/{c
 
     db.collection('memberLookups').where("feeds","array-contains",feedID).get().then(function(querySnapshot) {
         querySnapshot.forEach(function(doc) {
+            // For notification check
+            // && commentData['author']['id'] == doc.id
             if (doc.data()['notificationEnabled']) {
                 sendTokenPayload(
                     "feed",
@@ -51,6 +53,30 @@ exports.sendAnswerNotification = functions.firestore.document('answers/{answerID
         console.error('Error getting document', err);
         return err;
     });
+});
+
+exports.sendEventUpdateNotification = functions.firestore.document('events/{eventID}').onUpdate((change, context) => {
+    const newEvent = change.after.data();
+    const oldEvent = change.before.data();
+
+    var messageTitle = null, messageBody = null;
+    if(newEvent["endTime"] != oldEvent["endTime"] || newEvent["startTime"] != oldEvent["startTime"]){ // Event Time Changed
+        messageTitle = "Events time changed"
+        messageBody = `${newEvent["title"]}'s time changed.`
+    }else if(newEvent["fee"] != oldEvent["fee"]){ // Event Fee Changed
+        messageTitle = "Events fee changed"
+        messageBody = `${newEvent["title"]}'s fee changed.`
+    }else if(newEvent["location"]["latitude"] != oldEvent["location"]["latitude"] || newEvent["location"]["longitude"] != oldEvent["location"]["longitude"]){ // Event Location Changed
+        messageTitle = "Events location changed"
+        messageBody = `${newEvent["title"]}'s location changed. Please check the app to see new location.`
+    }
+
+    if (messageTitle != null && messageBody != null) {
+        const attendeeList = JSON.parse(newEvent["attendeeIDList"])
+        for (const attendeeID in attendeeList) {
+            return console.log(attendeeID)
+        }
+    }
 });
 
 function sendTokenPayload(data, dataID, title, body, token){
