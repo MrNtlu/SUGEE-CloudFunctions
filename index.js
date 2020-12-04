@@ -6,6 +6,8 @@ exports.sendCommentNotification = notifications.sendCommentNotification;
 
 exports.sendAnswerNotification = notifications.sendAnswerNotification;
 
+exports.sendEventUpdateNotification = notifications.sendEventUpdateNotification;
+
 exports.updateMemberInnerModel = updateHandlation.updateMemberInnerModel
 
 exports.deleteAnswers = deleteHandlation.onQuestionDeleteAnswers

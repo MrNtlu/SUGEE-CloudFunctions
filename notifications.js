@@ -60,18 +60,18 @@ exports.sendEventUpdateNotification = functions.firestore.document('events/{even
     const oldEvent = change.before.data();
 
     var messageTitle = null, messageBody = null;
-    if(newEvent["endTime"] != oldEvent["endTime"] || newEvent["startTime"] != oldEvent["startTime"]){ // Event Time Changed
+    if(newEvent["endTime"] !== oldEvent["endTime"] || newEvent["startTime"] !== oldEvent["startTime"]){ // Event Time Changed
         messageTitle = "Events time changed"
         messageBody = `${newEvent["title"]}'s time changed.`
-    }else if(newEvent["fee"] != oldEvent["fee"]){ // Event Fee Changed
+    }else if(newEvent["fee"] !== oldEvent["fee"]){ // Event Fee Changed
         messageTitle = "Events fee changed"
         messageBody = `${newEvent["title"]}'s fee changed.`
-    }else if(newEvent["location"]["latitude"] != oldEvent["location"]["latitude"] || newEvent["location"]["longitude"] != oldEvent["location"]["longitude"]){ // Event Location Changed
+    }else if(newEvent["location"]["latitude"] !== oldEvent["location"]["latitude"] || newEvent["location"]["longitude"] !== oldEvent["location"]["longitude"]){ // Event Location Changed
         messageTitle = "Events location changed"
         messageBody = `${newEvent["title"]}'s location changed. Please check the app to see new location.`
     }
 
-    if (messageTitle != null && messageBody != null) {
+    if (messageTitle !== null && messageBody !== null) {
         const attendeeList = JSON.parse(newEvent["attendeeIDList"])
         for (const attendeeID in attendeeList) {
             return console.log(attendeeID)
