@@ -13,3 +13,5 @@ exports.updateMemberInnerModel = updateHandlation.updateMemberInnerModel
 exports.deleteAnswers = deleteHandlation.onQuestionDeleteAnswers
 
 exports.deleteComments = deleteHandlation.onFeedDeleteComments
+
+exports.deleteEvents = deleteHandlation.onEventDeleteAttendees

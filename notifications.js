@@ -43,7 +43,7 @@ exports.sendAnswerNotification = functions.firestore.document('answers/{answerID
                     questionID,
                     `${answerData["author"]["name"]} answered your question.`,
                     `${answerData["body"]}`,
-                    doc.data()["author"]["fcmToken"]
+                    doc.data()["fcmToken"]
                 )
             }
         });
@@ -58,25 +58,67 @@ exports.sendAnswerNotification = functions.firestore.document('answers/{answerID
 exports.sendEventUpdateNotification = functions.firestore.document('events/{eventID}').onUpdate((change, context) => {
     const newEvent = change.after.data();
     const oldEvent = change.before.data();
+    const newStartDate = newEvent["startTime"].toDate();
+    const newEndDate = newEvent["endTime"].toDate();
+    const oldStartDate = oldEvent["startTime"].toDate();
+    const oldEndDate = oldEvent["endTime"].toDate();
+
+    let isTimeChanged = newEndDate.getTime() !== oldEndDate.getTime() || newStartDate.getTime() !== oldStartDate.getTime();
+    let isFeeChanged = newEvent["fee"] !== oldEvent["fee"];
+    let isLocationChanged = newEvent["location"]["latitude"] !== oldEvent["location"]["latitude"] || newEvent["location"]["longitude"] !== oldEvent["location"]["longitude"];
+
+    var i = 0;
+    if(isTimeChanged){
+        i++;
+    }
+    if(isFeeChanged){
+        i++;
+    }
+    if(isLocationChanged){
+        i++;
+    }
 
     var messageTitle = null, messageBody = null;
-    if(newEvent["endTime"] !== oldEvent["endTime"] || newEvent["startTime"] !== oldEvent["startTime"]){ // Event Time Changed
-        messageTitle = "Events time changed"
-        messageBody = `${newEvent["title"]}'s time changed.`
-    }else if(newEvent["fee"] !== oldEvent["fee"]){ // Event Fee Changed
-        messageTitle = "Events fee changed"
-        messageBody = `${newEvent["title"]}'s fee changed.`
-    }else if(newEvent["location"]["latitude"] !== oldEvent["location"]["latitude"] || newEvent["location"]["longitude"] !== oldEvent["location"]["longitude"]){ // Event Location Changed
-        messageTitle = "Events location changed"
-        messageBody = `${newEvent["title"]}'s location changed. Please check the app to see new location.`
+    if(i > 0){
+        if(i === 1){
+            if(isTimeChanged){
+                messageTitle = "Events time changed"
+                messageBody = `${newEvent["title"]}'s time changed.`
+            }else if(isFeeChanged){
+                messageTitle = "Events fee changed"
+                messageBody = `${newEvent["title"]}'s fee changed.`
+            }else if(isLocationChanged){
+                messageTitle = "Events location changed"
+                messageBody = `${newEvent["title"]}'s location changed. Please check the app to see new location.`
+            }
+        }else if(i > 1){
+            messageTitle = "Event information changed"
+            messageBody = `${newEvent["title"]}'s information changed.`
+        }
+
+        const attendeeIDList = newEvent["attendeeIDList"]
+        attendeeIDList.forEach(function(item){
+
+            db.collection("memberLookups").doc(item).get().then(function(doc) {
+                if (doc.data()['notificationEnabled']) {
+                    sendTokenPayload(
+                        "events",
+                        newEvent['id'],
+                        messageTitle,
+                        messageBody,
+                        doc.data()["fcmToken"]
+                    )
+                }
+                return console.log("Done querying.");
+            }).catch(err => {
+                console.error('Error getting document', err);
+                return err;
+            });
+        })
+        return console.log("Notification queries started.")
     }
 
-    if (messageTitle !== null && messageBody !== null) {
-        const attendeeList = JSON.parse(newEvent["attendeeIDList"])
-        for (const attendeeID in attendeeList) {
-            return console.log(attendeeID)
-        }
-    }
+    return null;
 });
 
 function sendTokenPayload(data, dataID, title, body, token){
