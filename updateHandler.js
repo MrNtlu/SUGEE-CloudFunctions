@@ -46,8 +46,6 @@ function updateReference(collectionName, path, data){
             .catch(function(error) {
                 console.error("Error updating document: ", error);
             });
-
-           return null;
         });
 
         return console.log("Done querying.");
