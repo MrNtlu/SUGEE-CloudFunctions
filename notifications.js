@@ -13,7 +13,7 @@ exports.sendCommentNotification = functions.firestore.document('feed_comments/{c
         querySnapshot.forEach(function(doc) {
             // For notification check
             // && commentData['author']['id'] == doc.id
-            if (doc.data()['notificationEnabled']) {
+            if (doc.data()['notificationEnabled'] && commentData['author']['id'] === doc.id) {
                 sendTokenPayload(
                     "feed",
                     feedID,
@@ -37,7 +37,7 @@ exports.sendAnswerNotification = functions.firestore.document('answers/{answerID
 
     db.collection('memberLookups').where("questions","array-contains",questionID).get().then(function(querySnapshot) {
         querySnapshot.forEach(function(doc) {
-            if (doc.data()['notificationEnabled']) {
+            if (doc.data()['notificationEnabled'] && answerData['author']['id'] === doc.id) {
                 sendTokenPayload(
                     "question",
                     questionID,
