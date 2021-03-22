@@ -13,7 +13,7 @@ exports.sendCommentNotification = functions.firestore.document('feed_comments/{c
         querySnapshot.forEach(function(doc) {
             // For notification check
             // && commentData['author']['id'] == doc.id
-            if (doc.data()['notificationEnabled'] && commentData['author']['id'] === doc.id) {
+            if (doc.data()['notificationEnabled'] && commentData['author']['id'] !== doc.id) {
                 sendTokenPayload(
                     "feed",
                     feedID,
@@ -37,7 +37,7 @@ exports.sendAnswerNotification = functions.firestore.document('answers/{answerID
 
     db.collection('memberLookups').where("questions","array-contains",questionID).get().then(function(querySnapshot) {
         querySnapshot.forEach(function(doc) {
-            if (doc.data()['notificationEnabled'] && answerData['author']['id'] === doc.id) {
+            if (doc.data()['notificationEnabled'] && answerData['author']['id'] !== doc.id) {
                 sendTokenPayload(
                     "question",
                     questionID,
@@ -121,6 +121,7 @@ exports.sendEventUpdateNotification = functions.firestore.document('events/{even
     return null;
 });
 
+//https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#apnsconfig
 function sendTokenPayload(data, dataID, title, body, token){
     const payload = {
         data: {
@@ -129,12 +130,20 @@ function sendTokenPayload(data, dataID, title, body, token){
         },
         notification: {
             title: title,
-            body: body,
+            body: body
         },
         android: {
             notification: {
                 sound: "default",
                 notification_count: 1,
+            }
+        },
+        apns: {
+            payload: {
+                aps: {
+                    badge: 1,
+                    sound: 'default'
+                },
             }
         },
         token: token
